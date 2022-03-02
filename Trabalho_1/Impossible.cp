@@ -16,12 +16,13 @@ struct piece{
     int rot4[4];
     */
     int rots[4][4];
+    
 }; 
 
 void rotate(piece * p);
 void solve_puzzle(piece * pool, piece * table, int i, int j, int num_columns);
 int find_match(int fixed [4], int tmp [4]);
-int is_match(piece t1, piece p2, bool esquerdacima);
+int is_match(piece t1, piece & p2, bool esquerdacima);
 void show_numbers(struct piece p);
 void showlist(list<struct piece> g);
 
@@ -50,31 +51,48 @@ int find_match(int fixed [4], int tmp [4]){
 
 
 
-void solve_puzzle(vector<piece> pool, piece * table, int i, int j, int num_columns){ // nunca vamos tirar do saco a primeria peça porque ela já foi colocada no tabuleiro
-    
-    if((j+2)%4 == 1){ //coluna = 0
-    
-        if(is_match(table[j], pool[i], 1)){
+int solve_puzzle(vector<piece> pool, piece * table, int i, int j, int num_columns, int num_pieces){ // nunca vamos tirar do saco a primeria peça porque ela já foi colocada no tabuleiro
+    bool match = 0;
+    show_numbers(pool[i]);
+    if(j ==  num_pieces-1){
+        return 1;
+    }
+    if((j+1)%num_columns ==0){ //coluna = 0
+        cout << "macaco1" << endl;
+        if(is_match(table[j+1-num_columns], pool[i], 1)){
+            match = 1;
             pool[i].position = j + 1;
             table[j+1] = pool[i];
             cout << "match0" << endl;
         }
     }
-    else if((j+2)/4 == 0 ){ //linha = 0
+    else if((j+1)/num_columns == 0 ){ //linha = 0
+        cout << "macaco2" << endl;
         if(is_match(table[j], pool[i], 0)){
-            
+            match = 1;
             pool[i].position = j + 1;
             table[j+1] = pool[i]; 
             cout << "match1" << endl;
         }
     }else{ // resto
-        if(is_match(table[j], pool[i], 0) && is_match(table[j], pool[i], 1)){
+        cout << "macaco3" << endl;
+        if(is_match(table[j], pool[i], 0) && is_match(table[j+1-num_columns], pool[i], 1)){
+            match = 1;
             pool[i].position = j + 1;
             table[j+1] = pool[i]; 
             cout << "match2" << endl;
         }
     }
-    cout << "macaca" << endl;
+    if(!match){
+        return 0;
+    }
+
+    if(solve_puzzle(pool,table,i + 1, j + 1, num_columns, num_pieces)){
+        return 1;
+    }else{
+        i++;
+        solve_puzzle(pool,table,i + 1, j + 1, num_columns, num_pieces);
+    };
 
     //retirar da pool para uma pool de usados ou assim
     //dar return de forma recursiva                      
@@ -82,15 +100,22 @@ void solve_puzzle(vector<piece> pool, piece * table, int i, int j, int num_colum
 }
 
 
-int is_match(piece t1, piece p2, bool esquerdacima){
+int is_match(piece t1, piece & p2, bool esquerdacima){
+    
     for(int i = 0; i < 4; i++){
         if(!esquerdacima){
+            //cout << t1.rots[t1.rot][1] << "diferente" << p2.rots[i][0] << endl;
+            //cout << t1.rots[t1.rot][2] << "diferente" << p2.rots[i][3] << endl;
+            //cout << endl;
             if(t1.rots[t1.rot][1] == p2.rots[i][0] && t1.rots[t1.rot][2] == p2.rots[i][3]){
                 p2.rot = i;
                 return 1;
             }
         }else{ 
-            if (t1.rots[t1.rot][0] == p2.rots[i][3] && t1.rots[t1.rot][1] == p2.rots[i][2]){
+            cout << t1.rots[t1.rot][3] << "diferente" << p2.rots[i][0] << endl;
+            cout << t1.rots[t1.rot][2] << "diferente" << p2.rots[i][1] << endl;
+            cout << endl;
+            if (t1.rots[t1.rot][3] == p2.rots[i][0] && t1.rots[t1.rot][2] == p2.rots[i][1]){
                 p2.rot = i;
                 return 1;  
             }
@@ -103,7 +128,7 @@ int is_match(piece t1, piece p2, bool esquerdacima){
 void show_numbers(struct piece p){
     int i = 0;
     while(i< 4){
-        cout << p.rots[0][i] << endl;
+        cout << p.rots[p.rot][i] << endl;
         i++;
     }
 
@@ -160,7 +185,12 @@ int main()
     }*/
 
 
-    solve_puzzle(pool, table, 0, 0, num_columns);
+    solve_puzzle(pool, table, 0, 0, num_columns, num_pieces);
+
+    for(int i = 0; i< num_pieces; i++){
+        show_numbers(table[i]);
+        cout << endl;
+    }
 
     //por primeira peca na primeira posicao do tabuleiro
     /*
